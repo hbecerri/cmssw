@@ -1,6 +1,6 @@
 /*
  *  See header file for a description of this class.
- *
+ **
  *  \author Suchandra Dutta , Giorgia Mila
  */
 
@@ -291,6 +291,63 @@ void TrackingMonitor::bookHistograms(DQMStore::IBooker & ibooker,
      NumberOfTracks->setAxisTitle("Number of Tracks per Event", 1);
      NumberOfTracks->setAxisTitle("Number of Events", 2);
   
+     histname = "NumberOfMeanRecHitsPerTrack_" + CategoryName;
+     NumberOfMeanRecHitsPerTrack = ibooker.book1D(histname, histname, MeanHitBin, MeanHitMin, MeanHitMax);
+     NumberOfMeanRecHitsPerTrack->setAxisTitle("Mean number of valid RecHits per Track", 1);
+     NumberOfMeanRecHitsPerTrack->setAxisTitle("Entries", 2);
+  
+     histname = "NumberOfMeanLayersPerTrack_" + CategoryName;
+     NumberOfMeanLayersPerTrack = ibooker.book1D(histname, histname, MeanLayBin, MeanLayMin, MeanLayMax);
+     NumberOfMeanLayersPerTrack->setAxisTitle("Mean number of Layers per Track", 1);
+     NumberOfMeanLayersPerTrack->setAxisTitle("Entries", 2);
+  
+     if (doFractionPlot_) {
+       histname = "FractionOfGoodTracks_" + CategoryName;
+       FractionOfGoodTracks = ibooker.book1D(histname, histname, 101, -0.005, 1.005);
+       FractionOfGoodTracks->setAxisTitle("Fraction of Tracks (w.r.t. generalTracks)", 1);
+       FractionOfGoodTracks->setAxisTitle("Entries", 2);
+     }
+   }
+
+   if ( doLumiAnalysis ) {
+     // add by Mia in order to deal with LS transitions
+     ibooker.setCurrentFolder(MEFolderName+"/LSanalysis");
+  
+     histname = "NumberOfTracks_lumiFlag_" + CategoryName;
+     NumberOfTracks_lumiFlag = ibooker.book1D(histname, histname, 3*TKNoBin, TKNoMin, (TKNoMax+0.5)*3.-0.5);
+     NumberOfTracks_lumiFlag->setAxisTitle("Number of Tracks per Event", 1);
+     NumberOfTracks_lumiFlag->setAxisTitle("Number of Events", 2);
+  
+   }
+
+   // book profile plots vs LS :  
+   //---------------------------  
+
+
+
+     histname = "NumberOfTracks_" + CategoryName;
+       // MODIFY by Mia in order to cope w/ high multiplicity
+     NumberOfTracks = ibooker.book1D(histname, histname, 3*TKNoBin, TKNoMin, (TKNoMax+0.5)*3.-0.5);
+     NumberOfTracks->setAxisTitle("Number of Tracks per Event", 1);
+     NumberOfTracks->setAxisTitle("Number of Events", 2);
+
+     histname = "NumberOfTracks_PUvtx_" + CategoryName;
+     NumberOfTracks_PUvtx = ibooker.book1D(histname, histname, 3*TKNoBin, TKNoMin, (TKNoMax+0.5)*3.-0.5);
+     NumberOfTracks_PUvtx->setAxisTitle("Number of Tracks per Event (matched a PU vertex)", 1);
+     NumberOfTracks_PUvtx->setAxisTitle("Number of Events", 2);
+
+     histname = "NumberofTracks_Hardvtx_" + CategoryName;
+     NumberofTracks_Hardvtx = ibooker.book1D(histname, histname, TKNoBin/10, TKNoMin, (TKNoMax/10+0.5)*3.-0.5);
+     NumberofTracks_Hardvtx->setAxisTitle("Number of Tracks per Event (matched main vertex)", 1);
+     NumberofTracks_Hardvtx->setAxisTitle("Number of Events", 2);
+
+     histname = "NumberofTracks_Hardvtx_PUvtx_" + CategoryName;
+     NumberofTracks_Hardvtx_PUvtx = ibooker.book1D(histname, histname, 2, 0., 2.);
+     NumberofTracks_Hardvtx_PUvtx->setAxisTitle("Number of Tracks per PU/Hard vertex", 1);
+     NumberofTracks_Hardvtx_PUvtx->setAxisTitle("Number of Tracks", 2);
+     NumberofTracks_Hardvtx_PUvtx->setBinLabel(1,"PU_Vertex");
+     NumberofTracks_Hardvtx_PUvtx->setBinLabel(2,"Hard_Vertex");
+
      histname = "NumberOfMeanRecHitsPerTrack_" + CategoryName;
      NumberOfMeanRecHitsPerTrack = ibooker.book1D(histname, histname, MeanHitBin, MeanHitMin, MeanHitMax);
      NumberOfMeanRecHitsPerTrack->setAxisTitle("Mean number of valid RecHits per Track", 1);
@@ -822,6 +879,11 @@ void TrackingMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       
       if (doGeneralPropertiesPlots_ || doAllPlots){
 	NumberOfTracks       -> Fill(numberOfTracks);
+	NumberOfTracks       -> Fill(double(numberOfTracks));
+	NumberofTracks_Hardvtx->Fill(double(numberOfTracks_pv0));
+	NumberOfTracks_PUvtx->Fill(double(numberOfTracks - numberOfTracks_pv0));
+	NumberofTracks_Hardvtx_PUvtx->Fill(0.5,double(numberOfTracks_pv0));
+	NumberofTracks_Hardvtx_PUvtx->Fill(1.5,double(numberOfTracks-numberOfTracks_pv0));
 	if ( doPlotsVsBX_ || doAllPlots )
 	  NumberOfTracksVsBX   -> Fill(bx,numberOfTracks);
 	if (doPlotsVsLUMI_ || doAllPlots) 
